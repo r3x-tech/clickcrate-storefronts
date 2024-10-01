@@ -4,6 +4,7 @@ import axios from "axios";
 import { PublicKey, Connection, clusterApiUrl } from "@solana/web3.js";
 import {
   ActionGetResponse,
+  ActionPostResponse,
   ACTIONS_CORS_HEADERS_MIDDLEWARE,
 } from "@solana/actions";
 
@@ -28,6 +29,7 @@ const CLICKCRATE_API_URL = process.env.CLICKCRATE_API_URL;
 // Step 1: Choose product type
 router.get("/", (req, res) => {
   console.log(req.query);
+  const {pos1, pos2, pos3} = req.query
   const payload: ActionGetResponse = {
     icon: "https://shdw-drive.genesysgo.net/CiJnYeRgNUptSKR4MmsAPn7Zhp6LSv91ncWTuNqDLo7T/autofill_checkout_button_bottom.png",
     label: "Choose a product",
@@ -37,13 +39,54 @@ router.get("/", (req, res) => {
     links: {
       actions: [
         {
-          href: "/api/products/shirt",
+          href: `/api/products/purchase/${pos1}`,
           label: "Shirt",
         },
+        {
+          href: `/api/products/purchase/${pos2}`,
+          label: "Cap",
+        },
+        {
+          href: `/api/products/purchase/${pos3}`,
+          label: "Belt",
+        }
       ],
     },
   };
   res.status(200).json(payload);
+});
+
+router.post("/purchase/:productId", async (req, res) => {
+  try {
+    const payload: ActionPostResponse = {
+      transaction: "dummy_transaction_base64",
+      message: "This blink allows you to purchase",
+      links: {
+        next: {
+          type: "inline",
+          action: {
+            type: "action",
+            icon: "https://example.com/verify-icon.png",
+            label: "Buy product",
+            title: "Buy the specific product",
+            description: "Buy the product from this blink",
+            links: {
+              actions: [
+                {
+                  href: `/api/procucts/`,
+                  label: "Back",
+                },
+              ],
+            },
+          },
+        },
+      },
+    }
+    res.json(payload);
+  } catch (error) {
+    console.error("Error Buying the product:", error);
+    res.status(400).json({ error: "Invalid data" });
+  }
 });
 
 export default router;

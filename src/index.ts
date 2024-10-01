@@ -1,7 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
-import productAggregatorRoutes from "./routes/productAggregator";
+import productAggregatorRoutes from "./routes/creator";
 import { errorHandler } from "./middlewares/errorHandler";
 import { ACTIONS_CORS_HEADERS_MIDDLEWARE } from "@solana/actions";
 
