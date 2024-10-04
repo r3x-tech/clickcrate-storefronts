@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import productAggregatorRoutes from "./routes/creator";
+import storefrontRoutes from "./routes/storefront";
 import { errorHandler } from "./middlewares/errorHandler";
 import { ACTIONS_CORS_HEADERS_MIDDLEWARE } from "@solana/actions";
 
@@ -17,7 +18,8 @@ app.get("/", (req, res) => {
   res.send("Welcome to ClickCrate Storefronts API!");
 });
 
-app.use("/api/products", productAggregatorRoutes);
+app.use("/products", productAggregatorRoutes);
+app.use("/storefront", storefrontRoutes);
 
 app.use(errorHandler);
 
