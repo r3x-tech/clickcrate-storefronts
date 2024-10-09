@@ -6,7 +6,11 @@ import {
   ACTIONS_CORS_HEADERS_MIDDLEWARE,
 } from "@solana/actions";
 import { getActionsArr } from "../services/clickcrateApiService";
-import { ActionParameterSelectable, ActionParameterType, FieldMapping } from "../models/schemas";
+import {
+  ActionParameterSelectable,
+  ActionParameterType,
+  FieldMapping,
+} from "../models/schemas";
 import { createTransaction } from "../services/solanaService";
 import { getParameters } from "../helpers/helpers";
 
@@ -30,24 +34,26 @@ router.use(blinkCorsMiddleware);
 // Step 1: Choose product type
 router.get("/", async (req, res) => {
   const posArr = Object.keys(req.query)
-    .filter(key => key.startsWith('pos'))
+    .filter((key) => key.startsWith("pos"))
     .sort()
-    .map(key => req.query[key])
+    .map((key) => req.query[key])
     .filter((pos): pos is string => typeof pos === "string");
 
-    if (posArr.length > 6) {
-      return res.status(400).json({ error: 'Too many POS values. Maximum allowed is 6.' });
-    }
-    
+  if (posArr.length > 6) {
+    return res
+      .status(400)
+      .json({ error: "Too many POS values. Maximum allowed is 6." });
+  }
+
   try {
     const actionsArr = await getActionsArr(posArr);
 
     const payload = {
-      icon: "https://shdw-drive.genesysgo.net/CiJnYeRgNUptSKR4MmsAPn7Zhp6LSv91ncWTuNqDLo7T/autofill_checkout_button_bottom.png",
+      icon: "https://shdw-drive.genesysgo.net/3CjrSiTMjg73qjNb9Phpd54sT2ZNXM6YmUudRHvwwppx/clickcrate_storefront.svg",
       label: "Choose a product",
       type: "action",
-      title: "Product aggregator",
-      description: "A blink that allows you to aggregate multiple products",
+      title: "ClickCrate Storefront",
+      description: `Collection of physical ClickCrate products for sale! Select a product to purchase below:`,
       links: { actions: actionsArr },
     };
 
@@ -72,9 +78,10 @@ router.post("/input/:productId", async (req, res) => {
       shippingCountryRegion: "Country/Region",
       shippingZipCode: "Zip Code",
     };
-    const parameters: ActionParameterSelectable<ActionParameterType>[] = getParameters(restQueryParams, fieldMapping);
+    const parameters: ActionParameterSelectable<ActionParameterType>[] =
+      getParameters(restQueryParams, fieldMapping);
     const payload: ActionPostResponse = {
-      transaction: Buffer.from(transaction.serialize()).toString('base64'),
+      transaction: Buffer.from(transaction.serialize()).toString("base64"),
       message: "This blink allows you to purchase",
       links: {
         next: {
@@ -90,7 +97,7 @@ router.post("/input/:productId", async (req, res) => {
                 {
                   href: `/storefront/purchase/${clickcrateId}`,
                   label: "Place order",
-                  parameters: parameters
+                  parameters: parameters,
                 },
               ],
             },
@@ -109,14 +116,14 @@ router.post("/input/:productId", async (req, res) => {
 router.post("/purchase/:clickcrateId", async (req, res) => {
   const clickcrateId = req.params.clickcrateId;
   const account = req.body.account;
-  const { 
-    buyerName, 
-    shippingEmail, 
-    shippingAddress, 
-    shippingCity, 
-    shippingCountryRegion, 
-    shippingZipCode, 
-    shippingStateProvince 
+  const {
+    buyerName,
+    shippingEmail,
+    shippingAddress,
+    shippingCity,
+    shippingCountryRegion,
+    shippingZipCode,
+    shippingStateProvince,
   } = req.body.data;
   const requBody = {
     account,
@@ -127,22 +134,23 @@ router.post("/purchase/:clickcrateId", async (req, res) => {
     shippingCity,
     shippingStateProvince,
     shippingCountryRegion,
-    shippingZipCode
-  }
+    shippingZipCode,
+  };
   const config = {
     headers: {
-      Authorization: `Bearer ${process.env.CLICKCRATE_API_KEY}`
-    }
-  }
-  const response = await axios.post(`${process.env.CLICKCRATE_API_URL}/blink/purchase?clickcrateId=${clickcrateId}&buyerName=${buyerName}&shippingEmail=${shippingEmail}&shippingAddress=${shippingAddress}&shippingCity=${shippingCity}&shippingStateProvince=${shippingStateProvince}&shippingCountryRegion=${shippingCountryRegion}&shippingZipCode=${shippingZipCode}`,
-    requBody, config
-  )
+      Authorization: `Bearer ${process.env.CLICKCRATE_API_KEY}`,
+    },
+  };
+  const response = await axios.post(
+    `${process.env.CLICKCRATE_API_URL}/blink/purchase?clickcrateId=${clickcrateId}&buyerName=${buyerName}&shippingEmail=${shippingEmail}&shippingAddress=${shippingAddress}&shippingCity=${shippingCity}&shippingStateProvince=${shippingStateProvince}&shippingCountryRegion=${shippingCountryRegion}&shippingZipCode=${shippingZipCode}`,
+    requBody,
+    config
+  );
   const payload: ActionPostResponse = {
     transaction: response?.data?.transaction,
     message: response?.data?.message,
   };
   res.json(payload);
-})
-
+});
 
 export default router;
